@@ -1,0 +1,5 @@
+*.so
+_skbuild/
+__pycache__/
+spherical_rtree.egg-info
+.vscode/
