@@ -7,6 +7,7 @@
 #include <boost/geometry.hpp>
 #include <boost/range/algorithm/nth_element.hpp>
 #include <iostream>
+#include <limits>
 
 constexpr double PI = 3.141592653589793;
 constexpr double TAU = 6.283185307179586;
@@ -141,13 +142,27 @@ public:
         float theta = std::atan2(z, std::sqrt(rxy2));
         float r = std::sqrt(rxy2 + z * z);
 
-        if (predicate == P_WithinCone) {
+        if (predicate == P_WithinCone || predicate == P_WithinConeFrustum || predicate == P_WithinBall) {
             float range = predicate_arg;
 
             float rs = range / r;
             float rs_phi = rs / cos(theta);
-            spoint_t p1 = {phi - rs_phi, std::max(theta - rs, -float(PI / 2)), 0};
-            spoint_t p2 = {phi + rs_phi, std::min(theta + rs, float(PI / 2)), r + range};
+            float rmin, rmax;
+
+            switch (predicate) {
+                case P_WithinCone:
+                    rmin = 0; rmax = r + range;
+                    break;
+                case P_WithinConeFrustum:
+                    rmin = r - range; rmax = std::numeric_limits<float>::infinity();
+                    break;
+                case P_WithinBall:
+                    rmin = r - range; rmax = r + range;
+                    break;
+            }
+
+            spoint_t p1 = {phi - rs_phi, std::max(theta - rs, -float(PI / 2)), rmin};
+            spoint_t p2 = {phi + rs_phi, std::min(theta + rs, float(PI / 2)), rmax};
             sbox_t bq(p1, p2);
 
             auto rit = _tree.qbegin(bgi::within(bq));

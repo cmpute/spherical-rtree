@@ -1,6 +1,7 @@
 from libcpp cimport bool
 from libcpp.vector cimport vector
 from numpy cimport ndarray
+from warnings import warn
 
 cdef extern from "SphericalRTree.hpp":
     cdef cppclass point_t:
@@ -86,12 +87,17 @@ cdef class Tree:
     def query(self, point, pred, pred_arg):
         x, y, z = point
 
+        if x == 0 and y == 0:
+            warn("the case where x = y = 0 is not currently supported.")
+
         cdef point_t c_pt = make_point(x, y, z)
         cdef Predicates c_pred = P_WithinCone
         if pred == "cone":
             c_pred = P_WithinCone
         elif pred == "cone_frustum":
             c_pred = P_WithinConeFrustum
+        elif pred == "ball":
+            c_pred = P_WithinBall
         else:
             raise ValueError("Not supported")
 
