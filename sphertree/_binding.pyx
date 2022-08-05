@@ -25,7 +25,7 @@ cdef extern from "SphericalRTree.hpp":
         unsigned int value_at(size_t)
         point_t origin()
 
-        void initialize(point_t origin)
+        void initialize(point_t origin, float max_distance)
         void dispose()
         bool is_initialized()
 
@@ -65,10 +65,10 @@ cdef class Tree:
         unwrap_point(self._tree.point_at(index), x, y, z)
         return (x, y, z, self._tree.value_at(index))
 
-    def initialize(self, origin):
+    def initialize(self, origin, float max_distance = 0.0):
         x, y, z = origin
         cdef point_t c_origin = make_point(x, y, z)
-        self._tree.initialize(c_origin)
+        self._tree.initialize(c_origin, max_distance)
 
     def dispose(self):
         self._tree.dispose()

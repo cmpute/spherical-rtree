@@ -77,10 +77,9 @@ public:
         _points(Eigen::Map<Eigen::Matrix<float, -1, 3, Eigen::RowMajor>>((float*)points.data(), points.size(), 3)),
         _values(std::move(values)) {}
 
-    /// Intialize the RTree with an origin position, all the points will be converted to a spherical coordinate centered
-    /// on this origin.
-    // TODO: add an option to skip points if they are too far away
-    void initialize(point_t origin) {
+    /// Intialize the RTree with an origin position, all the points will be converted
+    /// to a spherical coordinate centered on this origin.
+    void initialize(point_t origin, float max_distance = 0.0) {
         _origin = origin;
 
         // convert points to spherical coordinate
@@ -100,6 +99,9 @@ public:
         projections.reserve(_points.rows());
         
         for (size_t i = 0; i < _points.rows(); i++) {
+            if (max_distance > 0 && r(i) > max_distance) {
+                continue;
+            }
             spoint_t sp = { phi_2pi(i), theta(i), r(i) };
             projections.push_back(std::make_pair(sp, _values[i]));
         }
